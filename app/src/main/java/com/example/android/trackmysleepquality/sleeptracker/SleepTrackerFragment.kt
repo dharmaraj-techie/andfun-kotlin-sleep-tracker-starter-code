@@ -22,11 +22,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.R
 import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
+import com.example.android.trackmysleepquality.sleepquality.SleepQualityFragmentArgs
 
 /**
  * A fragment with buttons to record start and end times for sleep, which are saved in
@@ -54,16 +57,27 @@ class SleepTrackerFragment : Fragment() {
         val dataSource = SleepDatabase.getInstance(application).sleepDatabaseDao
 
         //Create an instance of the viewModelFactory
-        val viewModelFactory = SleepTrackerViewModelFactory(dataSource,application)
+        val viewModelFactory = SleepTrackerViewModelFactory(dataSource, application)
 
         //create the SleepTrackerViewModel
-        val sleepTrackerViewModel = ViewModelProviders.of(this,viewModelFactory).get(SleepTrackerViewModel::class.java)
+        val sleepTrackerViewModel = ViewModelProviders.of(this, viewModelFactory).get(SleepTrackerViewModel::class.java)
 
         //Set the current activity as the lifecycle owner of the binding.
         binding.setLifecycleOwner(this)
 
         binding.sleepTrackerViewModel = sleepTrackerViewModel
 
+
+        sleepTrackerViewModel.navigateToSleepQuality.observe(this, Observer { night ->
+            night?.let {
+                findNavController().navigate(
+                        SleepTrackerFragmentDirections
+                                .actionSleepTrackerFragmentToSleepQualityFragment(night.nightId))
+                sleepTrackerViewModel.doneNavigating()
+            }
+        })
         return binding.root
+
+
     }
 }
